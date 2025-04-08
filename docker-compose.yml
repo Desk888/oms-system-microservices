@@ -1,0 +1,73 @@
+services:
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - backend
+
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+    ports:
+      - "50051:50051"
+    depends_on:
+      - mongodb
+    networks:
+      - backend
+
+  product-service:
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+    ports:
+      - "50052:50052"
+    depends_on:
+      - mongodb
+    networks:
+      - backend
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017
+      - JWT_SECRET=your-secret-key # Change this in production
+    ports:
+      - "50053:50053"
+    depends_on:
+      - mongodb
+    networks:
+      - backend
+
+  api-gateway:
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
+    environment:
+      - ORDER_SERVICE_URL=order-service:50051
+      - PRODUCT_SERVICE_URL=product-service:50052
+      - USER_SERVICE_URL=user-service:50053
+    ports:
+      - "8080:8080"
+    depends_on:
+      - order-service
+      - product-service
+      - user-service
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  mongodb_data:
