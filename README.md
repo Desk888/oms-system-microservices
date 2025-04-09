@@ -43,7 +43,7 @@ The system consists of the following microservices:
 
 2. Start all services:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
    This will start:
